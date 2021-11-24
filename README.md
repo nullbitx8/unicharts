@@ -9,6 +9,8 @@
 ## deploying to local
 1. in console run `var Collection = await ethers.getContractFactory("MyCollection")` where MyCollection is contract name
 1. `var contract = await Collection.deploy('NFcharT', 'NFTCHART', '', ...)` passing in constructor params... deployer is acct 0, team address is diff acct (nb address are a string)
+
+
 Note that `ethers` is essentially a client that mimics Web3js interactions
 
 ## testing access control
