@@ -11,7 +11,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     // state vars
     bool public paused = true;
-    mapping(bytes => bytes1) public pairMapping; // the key is a concatenation of token0 and token1
+    mapping(bytes => bool) public pairMapping; // the key is a concatenation of token0 and token1
 
     // constructor
     constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
@@ -25,10 +25,10 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         require(token0 != token1, 'What are you doing comparing the same token?');
         bytes memory concatted = abi.encodePacked(token0, token1);
         require(
-            pairMapping[concatted] != 0x01,
+            pairMapping[concatted] != true,
             'This token pair already exists. Consider trading for it on OpenSea'
         );
-        pairMapping[concatted] = 0x01;
+        pairMapping[concatted] = true;
 
         uint256 supply = totalSupply();
         _safeMint(msg.sender, supply);
