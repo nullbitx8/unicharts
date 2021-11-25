@@ -8,7 +8,12 @@
     "eslint-config-airbnb": "^18.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-babel": "^5.3.1",
-    "eslint-plugin-prettier": "^3.1.4"
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^7.0.4",
+    "prettier": "^2.5.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "solhint": "^3.3.6",
+    "solhint-plugin-prettier": "0.0.5"
   },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
@@ -32,6 +37,13 @@
     "send": "hardhat send",
     "generate": "hardhat generate",
     "account": "hardhat account",
-    "upload": "hardhat run scripts/upload.js"
+    "upload": "hardhat run scripts/upload.js",
+    "lint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
+    "lint:fix": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+  },
+  "husky": {
+    "hooks": {
+       "pre-push": "npm run lint:fix"
+    }
   }
 }

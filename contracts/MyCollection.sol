@@ -6,7 +6,6 @@ import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 
 contract MyCollection is ERC721Enumerable, Ownable, ReentrancyGuard {
-
     // libraries
     using Strings for uint256;
 
@@ -77,21 +76,18 @@ contract MyCollection is ERC721Enumerable, Ownable, ReentrancyGuard {
      */
     function userMint(uint256 num) public payable nonReentrant {
         uint256 supply = totalSupply();
-        require( !paused,                               "Sale paused" );
-        require( num > 0 && num <= maxMintTx,           "Cant mint more than maxMintTx" );
-        require( supply + num <= maxSupply - reserved,  "Exceeds maximum NFT supply" );
-        require( msg.value >= price * num,              "Ether sent is not correct" );
+        require(!paused, 'Sale paused');
+        require(num > 0 && num <= maxMintTx, 'Cant mint more than maxMintTx');
+        require(supply + num <= maxSupply - reserved, 'Exceeds maximum NFT supply');
+        require(msg.value >= price * num, 'Ether sent is not correct');
         require(
-            payable(providerAddr).send(msg.value * providerPct / 100),
-            "Could not send provider"
+            payable(providerAddr).send((msg.value * providerPct) / 100),
+            'Could not send provider'
         );
-        require(
-            payable(teamAddr).send(msg.value * teamPct / 100),
-            "Could not send team"
-        );
+        require(payable(teamAddr).send((msg.value * teamPct) / 100), 'Could not send team');
 
-        for(uint256 i; i < num; i++){
-            _safeMint( msg.sender, supply + i );
+        for (uint256 i; i < num; i++) {
+            _safeMint(msg.sender, supply + i);
         }
 
         emit nftMinted(num);
@@ -100,11 +96,11 @@ contract MyCollection is ERC721Enumerable, Ownable, ReentrancyGuard {
     /**
      * @dev Returns all the tokens owned by the given address.
      */
-    function assetsOfAddress(address _address) public view returns(uint256[] memory) {
+    function assetsOfAddress(address _address) public view returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(_address);
 
         uint256[] memory tokensId = new uint256[](tokenCount);
-        for(uint256 i; i < tokenCount; i++){
+        for (uint256 i; i < tokenCount; i++) {
             tokensId[i] = tokenOfOwnerByIndex(_address, i);
         }
         return tokensId;
@@ -113,14 +109,14 @@ contract MyCollection is ERC721Enumerable, Ownable, ReentrancyGuard {
     /**
      * @dev Sets the cost of minting an NFT.
      */
-    function setPrice(uint256 _newPrice) public onlyOwner() {
+    function setPrice(uint256 _newPrice) public onlyOwner {
         price = _newPrice;
     }
 
     /**
      * @dev Returns the cost of minting an NFT.
      */
-    function getPrice() public view returns (uint256){
+    function getPrice() public view returns (uint256) {
         return price;
     }
 
@@ -128,12 +124,12 @@ contract MyCollection is ERC721Enumerable, Ownable, ReentrancyGuard {
      * @dev Mints the given _amount of reserved NFTs to the _to address.
      * Only costs gas to mint.
      */
-    function giveAway(address _to, uint256 _amount) external onlyOwner() {
-        require( _amount <= reserved, "Exceeds reserved NFT supply" );
+    function giveAway(address _to, uint256 _amount) external onlyOwner {
+        require(_amount <= reserved, 'Exceeds reserved NFT supply');
 
         uint256 supply = totalSupply();
-        for(uint256 i; i < _amount; i++){
-            _safeMint( _to, supply + i );
+        for (uint256 i; i < _amount; i++) {
+            _safeMint(_to, supply + i);
         }
 
         reserved -= _amount;
