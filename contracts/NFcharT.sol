@@ -30,7 +30,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         require(!paused, "Sale paused");
         require(token0 != token1, "What are you doing comparing the same token?");
         bytes memory concatted = abi.encodePacked(token0, token1);
-        // TODO check if exists
+        require(pairMapping[concatted] != 0x01, "This token pair already exists. Consider trading for it on OpenSea");
         pairMapping[concatted] = 0x01;
 
         uint256 supply = totalSupply();
