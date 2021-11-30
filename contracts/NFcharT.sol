@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
-import "contracts/Base64.sol";
+import 'contracts/Base64.sol';
 
 // Source: https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0
 interface v3oracle {
@@ -33,6 +33,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     mapping(uint256 => address[]) internal tokenIdToTokenPairMapping; // the key is tokenId and value is array of addresses for two tokens being tracked
     // TODO: create a method to set lookBackWindowForToken by client
     mapping(uint256 => uint256) internal lookBackWindowForToken; // key is tokenId and value is lookback window (in days) set for that token
+
     // TODO: can add a mapping of tokenId to array of plugins
     // then tokenURI method can iterate through plugins when building svg and the json metadata
     // also needs getters/setters
@@ -68,23 +69,28 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     /*
-    * TODO: fill me out
-    */
-    function buildSVG(string memory symbol0, string memory symbol1, uint256[] memory twips, uint256 tokenId) internal view returns (string memory) {
+     * TODO: fill me out
+     */
+    function buildSVG(
+        string memory symbol0,
+        string memory symbol1,
+        uint256[] memory twips,
+        uint256 tokenId
+    ) internal view returns (string memory) {
         // tokenId can beused to determine if 24hr or 7 day
         // can fetch lookback period by taking length of twips array
-        
+
         //  take the first case of 24 hour chart
         // we have 6 points of 4 hours each
         // 4 hours = 60 * 60 * 4  seconds
-        // so we would have a mapping of 
+        // so we would have a mapping of
         //    4 hours => price
         //    8 hours => price
         //    12 hours => price
         //    16
         //    20
         //    24
-        // 
+        //
         // take the second case of 7 day chart
         //  we have 7 piontns of 1 day (24 hours) each
         // so we would have a mapping of
@@ -129,7 +135,17 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         // TODO: test this json creation method
         // separating strings into small chunks to not exceed 32 bit limit
-        string memory blob = string(abi.encodeWithSelector('{"', 'description"', ': "NFcharT", "name": ', pairName, ', "image_data":', svg, '}'));
+        string memory blob = string(
+            abi.encodeWithSelector(
+                '{"',
+                'description"',
+                ': "NFcharT", "name": ',
+                pairName,
+                ', "image_data":',
+                svg,
+                '}'
+            )
+        );
         return Base64.encode(bytes(blob));
     }
 
