@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import "contracts/Base64.sol";
 
 // Source: https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0
 interface v3oracle {
@@ -127,6 +128,9 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         string memory svg = buildSVG(symbol0, symbol1, twips, tokenId);
 
+        string memory blob = '{"description": "NFcharT"}';
+        return Base64.encode(bytes(blob));
+
         // Build outline of JSON blob
         /*
         {
@@ -136,11 +140,6 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // "attributes": [{"key": "value"}], // TODO: this is for v2
         }
          */
-
-        // base64 encode it (can use contract from here: https://etherscan.io/address/0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d#code)
-
-        // return it
-        return '';
     }
 
     /**
