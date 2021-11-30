@@ -15,6 +15,10 @@ interface v3oracle {
     ) external view returns (uint256);
 }
 
+interface IERC20 {
+    function symbol() external view returns (string memory);
+}
+
 contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     // libraries
     using Strings for uint256;
@@ -23,9 +27,14 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
     // state vars
     bool public paused = true;
+    uint256 hour = 3600;
     mapping(bytes => bool) public tokenPairExistenceMapping; // the key is a concatenation of token0 and token1
     mapping(uint256 => address[]) internal tokenIdToTokenPairMapping; // the key is tokenId and value is array of addresses for two tokens being tracked
+    // TODO: create a method to set lookBackWindowForToken by client
     mapping(uint256 => uint256) internal lookBackWindowForToken; // key is tokenId and value is lookback window (in days) set for that token
+    // TODO: can add a mapping of tokenId to array of plugins
+    // then tokenURI method can iterate through plugins when building svg and the json metadata
+    // also needs getters/setters
 
     // constructor
     constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
@@ -57,6 +66,38 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         return abi.encodePacked(token0, token1);
     }
 
+    /*
+    * TODO: fill me out
+    */
+    function buildSVG(string memory symbol0, string memory symbol1, uint256[] memory twips, uint256 tokenId) internal view returns (string memory) {
+        // tokenId can beused to determine if 24hr or 7 day
+        // can fetch lookback period by taking length of twips array
+        
+        //  take the first case of 24 hour chart
+        // we have 6 points of 4 hours each
+        // 4 hours = 60 * 60 * 4  seconds
+        // so we would have a mapping of 
+        //    4 hours => price
+        //    8 hours => price
+        //    12 hours => price
+        //    16
+        //    20
+        //    24
+        // 
+        // take the second case of 7 day chart
+        //  we have 7 piontns of 1 day (24 hours) each
+        // so we would have a mapping of
+        //    1 day  => price
+        //    2 days => price
+        //    3 days => price
+        //    4 days => price
+        //    5 days => price
+        //    6 days => price
+        //    7 days => price
+
+        return '';
+    }
+
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      * Returns a base64 encoded JSON blob of metadata.
@@ -66,26 +107,39 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         // fetch two tokens being compared by tokenId key
         address[] memory tokens = tokenIdToTokenPairMapping[tokenId];
-        // TODO: get TWAP period from web client?
+
+        // example of getting symbol
+        string memory symbol0 = IERC20(tokens[0]).symbol();
+        string memory symbol1 = IERC20(tokens[1]).symbol();
+
         // now query Uniswap Oracle for Price Data (https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0)
-        // TODO: need a loop to get these over different interval
         // eg - to get over 24 hours period, need to query for 30 mins, then 60 mins, then 90, then ... up to 24 hrs
         // and return all values as an array to plot
 
         uint256 twipCountToFetch = lookBackWindowForToken[tokenId] * 48; // 48 comes from assuming 3600 is for 30 mins as docs say. and there are 48 periods of 30 mins in one day
         uint256[] memory twips = new uint256[](twipCountToFetch);
+        // TODO: should be a map of seconds (uint256) to prices (unit256)
         for (uint256 i = 0; i < twipCountToFetch; i++) {
             uint256 currentLookbackWindow = (i + 1) * 3600; // recall i is 0 indexed
             uint256 twip = oracle.assetToAsset(tokens[0], 1e18, tokens[1], currentLookbackWindow);
             twips[i] = twip;
         }
 
-        // TODO
-        // Create JSON template
-        // Create SVG Template
-        // Query Uniswap Oracle for Price Data
-        // base64 encode the JSON blob
-        // return encoded JSON
+        string memory svg = buildSVG(symbol0, symbol1, twips, tokenId);
+
+        // Build outline of JSON blob
+        /*
+        {
+        "description": "NFcharT", 
+        "name": buildToken0/Token1Symbol(tokenId),
+        "image_data": buildSVG(tokenId),
+        // "attributes": [{"key": "value"}], // TODO: this is for v2
+        }
+         */
+
+        // base64 encode it (can use contract from here: https://etherscan.io/address/0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d#code)
+
+        // return it
         return '';
     }
 
@@ -99,7 +153,8 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /**
      * @dev Sets lookback window for tokenId
      */
-    function setLookbackWindow(uint256 tokenId, uint256 dayCount) public {
+    function setLookbackWindow(uint256 tokenId, uint256 dayCount) external {
+        // TODO: write an enum instead of an int
         lookBackWindowForToken[tokenId] = dayCount;
     }
 
