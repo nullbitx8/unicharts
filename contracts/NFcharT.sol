@@ -136,7 +136,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // TODO: test this json creation method
         // separating strings into small chunks to not exceed 32 bit limit
         string memory blob = string(
-            abi.encodeWithSelector(
+            abi.encodePacked(
                 '{"',
                 'description"',
                 ': "NFcharT", "name": ',
@@ -146,6 +146,8 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
                 '}'
             )
         );
+
+        // TODO: add header specifying this is base64 encoded application/json (like the http header)
         return Base64.encode(bytes(blob));
     }
 
