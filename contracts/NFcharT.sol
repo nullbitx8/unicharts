@@ -67,9 +67,66 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     /*
-    * TODO: fill me out
+    * @dev Returns a string of SVG data representing the price chart.
     */
     function buildSVG(string memory symbol0, string memory symbol1, uint256[] memory twips, uint256 tokenId) internal view returns (string memory) {
+        // our graph is 350x350
+        // there are 50px of padding in all directions
+        // which allow us to label the axes, and title the chart
+        // then the lines and points are drawn in a 250x250 square
+
+        // there are two possible charts
+        // 1. Daily chart (6 points of 4 hours)
+        // 2. Weekly chart (7 points of 1 day)
+
+        // determine if the chart is a 1 day chart or 7 day chart
+        bool isWeekChart = twips.length == 7;
+        uint256 hour = 3600;  // seconds
+
+        // calculate different variables based on whether the
+        // chart is a daily chart or a weekly chart
+        uint16 pointOffsetX;
+        uint256 secondsInterval;
+        string memory xAxisLabel;
+
+        if (isWeekChart == true) {
+            pointOffsetX = 50;  // 50 pixels between points
+            secondsInterval = hour * 24;  // 24 hours between points
+            xAxisLabel = "Day (UTC)";
+        }
+        else {
+            pointOffsetX = 40;  // 40 pixels between points
+            secondsInterval = hour * 4;  // 4 hours between points
+            xAxisLabel = "Hour (UTC)";
+        }
+
+        // generate the days or hours labels for the x axis 
+        string memory timeLabelsSVG; 
+        string memory toReturn = abi.encode(
+            '<svg width="350" height="350" xmlns="http://www.w3.org/2000/svg"',
+            ' xmlns:xlink="http://www.w3.org/1999/xlink">',
+            
+            // chart title
+            '<text x="150" y="50" font-size="18">',
+            '<set attributeName="visibility" from="visible" to="hidden" begin="0s" dur="1s" />',
+            symbol0,
+            '/',
+            symbol1,
+            '</text>',
+
+            // create / label the X axis
+            '<line x1="50" x2="50" y1="50" y2="300" stroke="black" stroke-width="5">',
+		    '<animate attributeName="y2" from="50" to="300" begin="0s" dur="1s" />',
+            '</line>',
+            '<text x="120" y="340">',
+            xAxisLabel,
+            '</text>'
+        );
+
+
+            
+            
+            
         // tokenId can beused to determine if 24hr or 7 day
         // can fetch lookback period by taking length of twips array
         
