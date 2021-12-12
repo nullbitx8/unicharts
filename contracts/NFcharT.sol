@@ -15,6 +15,12 @@ interface v3oracle {
     ) external view returns (uint256);
 }
 
+// Source https://github.com/pipermerriam/ethereum-datetime
+interface datetime {
+    function getHour(uint timestamp) constant returns (uint16);
+    function getDay(uint timestamp) constant returns (uint16);
+}
+
 interface IERC20 {
     function symbol() external view returns (string memory);
 }
@@ -24,6 +30,8 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Strings for uint256;
 
     v3oracle constant oracle = v3oracle(0x0F1f5A87f99f0918e6C81F16E59F3518698221Ff);
+    datetime constant ethDT = datetime(0x1a6184cd4c5bea62b0116de7962ee7315b7bcbce);  // mainnet 
+    //datetime constant ethDT = datetime(0x92482ba45a4d2186dafb486b322c6d0b88410fe7);  // rinkeby 
 
     // state vars
     bool public paused = true;
@@ -85,23 +93,20 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
         // calculate different variables based on whether the
         // chart is a daily chart or a weekly chart
-        uint16 pointOffsetX;
+        uint16 xInterval;
         uint256 secondsInterval;
         string memory xAxisLabel;
 
         if (isWeekChart == true) {
-            pointOffsetX = 50;  // 50 pixels between points
-            secondsInterval = hour * 24;  // 24 hours between points
+            xInterval = 50;  // 50 pixels between points
             xAxisLabel = "Day (UTC)";
         }
         else {
-            pointOffsetX = 40;  // 40 pixels between points
-            secondsInterval = hour * 4;  // 4 hours between points
+            xInterval = 40;  // 40 pixels between points
             xAxisLabel = "Hour (UTC)";
         }
 
         // generate the days or hours labels for the x axis 
-        string memory timeLabelsSVG; 
         string memory toReturn = abi.encode(
             '<svg width="350" height="350" xmlns="http://www.w3.org/2000/svg"',
             ' xmlns:xlink="http://www.w3.org/1999/xlink">',
@@ -120,39 +125,86 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
             '</line>',
             '<text x="120" y="340">',
             xAxisLabel,
-            '</text>'
+            '</text>',
+
+            // add the dates or hours to the X axis 
+            buildTimeUnitsSVG(isWeek, xInterval),
+
+            // create / label the y axis
+            '<line x1="50" x2="300" y1="300" y2="300" stroke="black" stroke-width="5">',
+            '<animate attributeName="x1" from="300" to="50" begin="0s" dur="1s" />',
+            '</line>',
+            '<text x="30" y="150" style="writing-mode: sideways-lr;">',
+            'Price  (',
+            symbol1,
+            ')',
+            '</text>',
+
         );
-
-
             
-            
-            
-        // tokenId can beused to determine if 24hr or 7 day
-        // can fetch lookback period by taking length of twips array
-        
-        //  take the first case of 24 hour chart
-        // we have 6 points of 4 hours each
-        // 4 hours = 60 * 60 * 4  seconds
-        // so we would have a mapping of 
-        //    4 hours => price
-        //    8 hours => price
-        //    12 hours => price
-        //    16
-        //    20
-        //    24
-        // 
-        // take the second case of 7 day chart
-        //  we have 7 piontns of 1 day (24 hours) each
-        // so we would have a mapping of
-        //    1 day  => price
-        //    2 days => price
-        //    3 days => price
-        //    4 days => price
-        //    5 days => price
-        //    6 days => price
-        //    7 days => price
-
         return '';
+    }
+
+    /*
+    * @dev Returns a string of SVG data representing
+    * the time units on the X axis.
+    */
+    function buildTimeUnitsSVG(bool isWeek, uint16 xInterval) internal view returns (string memory) {
+        string memory toReturn = "";
+        uint8 numPoints = isWeek ? 7 : 6;
+        uint16[] units;
+        uint16 pointX = 50;
+
+        // populate the time units
+        units = getTimeUnits(isWeek);
+
+        for (uint8 i=0; i < numPoints; i++) {
+            pointX = pointX + xInterval;
+            toReturn = abi.encode(
+                toReturn,
+                '<text x="',
+                string(pointX),
+                '" y="320" font-size="14">',
+                '<set attributeName="visibility" from="visible"',
+                ' to="hidden" begin="0s" dur="1s" />',
+                string(units[i]),
+                '</text>'
+            );
+        }
+
+        return toReturn;
+    }
+
+    /*
+    * @dev Returns an array of 7 date units if isWeek is true.
+    * Returns an array of 6 hour units if isWeek is false.
+    * E.g. isWeek is true, returns [28, 29, 30, 31, 1, 2, 3]
+    *      isWeek is false, returns [6, 7, 8, 9, 10, 11]
+    */
+    function getTimeUnits(bool isWeek) internal view returns (uint16[] units) {
+        uint256 hour = 3600;  // seconds
+
+        // store 7 days including the current day
+        // sorted from oldest to newest
+        if (isWeek) {
+            for (uint256 i=6; i>=0; i--) {
+                units.push(
+                   ethDT.getDay(block.timestamp - (hour * 24 * i));
+                );
+            }
+        }
+
+        // store six 4-hour intervals including the current hour
+        // sorted from oldest to newest
+        else {
+            for (uint256 i=5; i>=0; i--) {
+                units.push(
+                   ethDT.getHour(block.timestamp - (hour * 4 * i));
+                );
+            }
+        }
+
+        return units;
     }
 
     /**
