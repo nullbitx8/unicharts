@@ -16,7 +16,13 @@ module.exports = {
     compilers: [
       {  
         version: "0.8.0",
-      },
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 2000
+          }
+        }
+      }, 
     ]
   },
   networks: {
@@ -31,7 +37,7 @@ module.exports = {
       },
     },
     rinkeby: {
-      url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", //<---- YOUR INFURA ID! (or it won't work)
+      url: "https://rinkeby-light.eth.linkpool.io", //<---- YOUR INFURA ID! (or it won't work)
       accounts: {
         mnemonic: mnemonic,
       },
