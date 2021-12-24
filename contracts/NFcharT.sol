@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import 'contracts/Base64.sol';
 
 // Source: https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0
@@ -80,11 +81,12 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /*
     * @dev Returns a string of SVG data representing the price chart.
     */
-    function buildSVG(string memory symbol0, string memory symbol1, uint256[] memory twips) external view returns (bytes memory) {
-        // our graph is 350x350
+    // TODO change to internal, bytes
+    function buildSVG(string memory symbol0, string memory symbol1, uint256[] memory twips) external view returns (string memory) {
+        // the graph is 350x350 pixels
         // there are 50px of padding in all directions
-        // which allow us to label the axes, and title the chart
-        // then the lines and points are drawn in a 250x250 square
+        // to allow labeling of the axes, and titling the chart
+        // the chart lines and points are drawn in a 250x250 pixel square
 
         // there are two possible charts
         // 1. Daily chart (6 points of 4 hours)
@@ -93,68 +95,102 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // determine if the chart is a 1 day chart or 7 day chart
         bool isWeekChart = twips.length == 7;
 
-        // calculate different variables based on whether the
-        // chart is a daily chart or a weekly chart
-        uint16 xInterval;
-        string memory xAxisLabel;
+        // weekly charts have 50 pixels between points
+        // whereas daily charts have 40
+        uint16 xInterval = isWeekChart? 50 : 40;
 
-        if (isWeekChart == true) {
-            xInterval = 50;  // 50 pixels between points
-            xAxisLabel = "Day (UTC)";
-        }
-        else {
-            xInterval = 40;  // 40 pixels between points
-            xAxisLabel = "Hour (UTC)";
-        }
+        // generate the SVG for the chart 
+        return string(abi.encodePacked(
+            declareSVG(),
+            chartTitleSVG(symbol0, symbol1),
+            xAxisLabelSVG(isWeekChart),
+            buildTimeUnitsSVG(isWeekChart, xInterval),
+            yAxisSVG(symbol1),
+            buildPricePointsSVG(twips, xInterval),
+            '</svg>'
+        ));
+    }
 
-        // generate the SVG for our chart 
-        bytes memory toReturn = abi.encode(
-            '<svg width="350" height="350" xmlns="http://www.w3.org/2000/svg"',
-            ' xmlns:xlink="http://www.w3.org/1999/xlink">',
-            
-            // chart title
-            '<text x="150" y="50" font-size="18">',
-            '<set attributeName="visibility" from="visible" to="hidden" begin="0s" dur="1s" />',
+    /*
+    * @dev Returns opening SVG element.
+    */
+    function declareSVG() internal pure returns (bytes memory) {
+
+        return abi.encodePacked(
+            '<svg width="350" height="350" ',
+            'xmlns="http://www.w3.org/2000/svg',
+            '" xmlns:xlink="http://www.w3.org/',
+            '1999/xlink">'
+        );
+    }
+
+    /*
+    * @dev Returns SVG of chart title.
+    */
+    function chartTitleSVG(string memory symbol0, string memory symbol1) internal pure returns (bytes memory) {
+
+        return abi.encodePacked(
+            '<text x="150" y="50" ',
+            'font-size="18">',
+            '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
+            'begin="0s" dur="1s" />',
             symbol0,
             '/',
             symbol1,
-            '</text>',
+            '</text>'
+        );
+    }
 
+    /*
+    * @dev Returns SVG of X axis label.
+    */
+    function xAxisLabelSVG(bool isWeek) internal pure returns (bytes memory) {
+        string memory xAxisLabel = isWeek? "Day (UTC)" : "Hour (UTC)";
+
+        return abi.encodePacked(
             // create / label the X axis
-            '<line x1="50" x2="50" y1="50" y2="300" stroke="black" stroke-width="5">',
-		    '<animate attributeName="y2" from="50" to="300" begin="0s" dur="1s" />',
+            '<line x1="50" x2="50" y1="50" ',
+            'y2="300" stroke="black" ',
+            'stroke-width="5">',
+		    '<animate attributeName="y2" ',
+            'from="50" to="300" begin="0s" ',
+            'dur="1s" />',
             '</line>',
             '<text x="120" y="340">',
             xAxisLabel,
-            '</text>',
+            '</text>'
+        );
+    }
 
-            // add the dates or hours to the X axis 
-            buildTimeUnitsSVG(isWeekChart, xInterval),
+    /*
+    * @dev Returns SVG of Y axis.
+    */
+    function yAxisSVG(string memory symbol1) internal pure returns (bytes memory) {
 
-            // create / label the y axis
-            '<line x1="50" x2="300" y1="300" y2="300" stroke="black" stroke-width="5">',
-            '<animate attributeName="x1" from="300" to="50" begin="0s" dur="1s" />',
+        return abi.encodePacked(
+            '<line x1="50" x2="300" y1="300" ',
+            'y2="300" stroke="black" ',
+            'stroke-width="5">',
+            '<animate attributeName="x1" ',
+            'from="300" to="50" begin="0s" ',
+            'dur="1s" />',
             '</line>',
-            '<text x="30" y="150" style="writing-mode: sideways-lr;">',
+            '<text x="30" y="150" ',
+            'style="writing-mode: ',
+            'sideways-lr;">',
             'Price  (',
             symbol1,
             ')',
-            '</text>',
-
-            // create the price points, labels, and lines
-            buildPricePointsSVG(twips, xInterval),
-            '</svg>'
+            '</text>'
         );
-            
-        return toReturn;
     }
 
     /*
     * @dev Returns a string of SVG data representing
     * the time units on the X axis.
     */
-    function buildTimeUnitsSVG(bool isWeek, uint16 xInterval) internal view returns (bytes memory) {
-        bytes memory toReturn = "";
+    function buildTimeUnitsSVG(bool isWeek, uint16 xInterval) internal view returns (bytes memory toReturn) {
         uint8 numPoints = isWeek ? 7 : 6;
         uint16[7] memory units;
         uint16 pointX = 50;
@@ -163,15 +199,15 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         units = getTimeUnits(isWeek);
 
         for (uint8 i=0; i < numPoints; i++) {
-            pointX = pointX + xInterval;
-            toReturn = abi.encode(
+            toReturn = abi.encodePacked(
                 toReturn,
                 '<text x="',
-                pointX,
+                Strings.toString(pointX + (i * xInterval)),
                 '" y="320" font-size="14">',
-                '<set attributeName="visibility" from="visible"',
-                ' to="hidden" begin="0s" dur="1s" />',
-                units[i],
+                '<set attributeName="visibility" ',
+                'from="visible" to="hidden" ',
+                'begin="0s" dur="1s" />',
+                Strings.toString(units[i]),
                 '</text>'
             );
         }
@@ -191,16 +227,18 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // store 7 days including the current day
         // sorted from oldest to newest
         if (isWeek) {
-            for (uint256 i=6; i>=0; i--) {
-                units[6-i] = ethDT.getDay(block.timestamp - (hour * 24 * i));
+
+            for (uint256 i=0; i<7; i++) {
+                units[i] = ethDT.getDay(block.timestamp - (hour * 24 * (6-i)));
             }
         }
 
         // store six 4-hour intervals including the current hour
         // sorted from oldest to newest
         else {
-            for (uint256 i=5; i>=0; i--) {
-                units[5-i] = ethDT.getHour(block.timestamp - (hour * 4 * i));
+
+            for (uint256 i=0; i<6; i++) {
+                units[i] = ethDT.getHour(block.timestamp - (hour * 4 * (5-i)));
             }
         }
 
@@ -211,22 +249,18 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     * @dev Returns a string of SVG data representing
     * the price points on the graph.
     */
-    function buildPricePointsSVG(uint256[] memory twips, uint16 xInterval) internal pure returns (bytes memory) {
-        uint256[] memory normalizedTwaps = calcNormalizedTwaps(twips);
-        
-        // loop through the prices and create
-        // the points and lines for each price
-        bytes memory toReturn;
+    function buildPricePointsSVG(uint256[] memory twips, uint16 xInterval) internal pure returns (bytes memory toReturn) {
+        uint256[7] memory normalizedTwaps = calcNormalizedTwaps(twips);
 
         // create first point and its label
         toReturn = firstPointSVG(twips[0], normalizedTwaps[0]);
 
         // create remaining points, their labels, and lines connecting them
-        toReturn = abi.encode(
+        toReturn = abi.encodePacked(
             toReturn,
             remainingPointsSVG(twips, normalizedTwaps, xInterval)
         );
-        
+
         return toReturn;
     }
 
@@ -235,7 +269,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     * representing price data that is normalized
     * to fit a 250px square chart.
     */
-    function calcNormalizedTwaps(uint256[] memory twips) internal pure returns (uint256[] memory normalizedTwaps) {
+    function calcNormalizedTwaps(uint256[] memory twips) internal pure returns (uint256[7] memory normalizedTwaps) {
         // TODO test for inactive markets or invalid values
         //      ... what if the price oracle returns 0 or -1?
         // thanks to Ross Bulat for normalizing the data for SVG
@@ -251,12 +285,18 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         }
 
         for (uint8 i=0; i<twips.length; i++) {
-            // feature scaling, multiplied by 250 to fit our 250px square graph
-            // since our square graph lies between 50px and 300px
+            // feature scaling, multiplied by 250 to fit the 250px square graph
+
+            // feature scaling gives a result between 0 and 1; in solidity this
+            // will round down to 0, so the result is multiplied and later divided
+            //  by the max to preserve the precision
+
+            // since the chart is a square graph that lies between 50px and 300px,
             // subtract the result from 300 to inverse the coords for SVG
-            // additionally we give 3px buffer for our circles so we start
-            // at 297 instead of 300
-            normalizedTwaps[i] = 297 - (((twips[i] - min) / (max-min)) * 250);
+
+            // a 3px buffer is given for the circles on the graph,
+            // so the first coord starts at 297 instead of 300
+            normalizedTwaps[i] = 297 - ( ( ( (twips[i] - min) * max ) / (max-min) * 250 ) / max );
         }
 
         return normalizedTwaps;
@@ -267,20 +307,23 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     */
     function firstPointSVG(uint256 twap, uint256 normalizedTwap) internal pure returns (bytes memory) {
 
-        return abi.encode(
+        return abi.encodePacked(
             '<circle cx="53" cy="',
-            normalizedTwap,
-            '" r="5" fill="aqua" visibility="visible">',
-            '<set attributeName="visibility" from="visible" to="hidden" ',
+            Strings.toString(normalizedTwap),
+            '" r="5" fill="aqua" visibility=',
+            '"visible">',
+            '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
             'begin="0ms" dur="1000ms" />',
             '</circle>',
             '<text x="53" y="',
-            normalizedTwap - 10,
+            Strings.toString(normalizedTwap - 10),
             '" font-size="14">',
-            '<set attributeName="visibility" from="visible" to="hidden" ',
+            '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
             'begin="0ms" dur="1000ms" />',
             // TODO what if twip has 10 leading 0's?
-            twap, 
+            Strings.toString(twap), 
             '</text>'
         );
     }
@@ -288,12 +331,12 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /*
     * @dev Returns SVG of remaining points on graph.
     */
-    function remainingPointsSVG(uint256[] memory twaps, uint256[] memory normalizedTwaps, uint16 xInterval) internal pure returns (bytes memory toReturn) {
+    function remainingPointsSVG(uint256[] memory twaps, uint256[7] memory normalizedTwaps, uint16 xInterval) internal pure returns (bytes memory toReturn) {
         // loop through each price
         for (uint8 i=1; i<twaps.length; i++) {
             
             // concat the svg for each point, its label, and connecting lines
-            toReturn = abi.encode(
+            toReturn = abi.encodePacked(
                 toReturn,
                 circleSVG(normalizedTwaps, i, xInterval),
                 labelSVG(twaps, normalizedTwaps, i, xInterval),
@@ -305,16 +348,18 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /*
     * @dev Returns SVG of a price point circle.
     */
-    function circleSVG(uint256[] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
-        return abi.encode(
+    function circleSVG(uint256[7] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
+        return abi.encodePacked(
             '<circle cx="',
-            53 + (index * xInterval),
+            Strings.toString(53 + (index * xInterval)),
             '" cy="',
-            normalizedTwaps[index],
-            '" r="5" fill="aqua" visibility="visible"> ',
-            '<set attributeName="visibility" from="visible" to="hidden" ',
+            Strings.toString(normalizedTwaps[index]),
+            '" r="5" fill="aqua" visibility=',
+            '"visible"> ',
+            '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
             'begin="0ms" dur="',
-            1000 + (index * 500),
+            Strings.toString(1000 + (index * 500)),
             'ms" />',
             '</circle>'
         );
@@ -323,19 +368,20 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /*
     * @dev Returns SVG of a price point label.
     */
-    function labelSVG(uint256[] memory twaps, uint256[] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
-        return abi.encode(
+    function labelSVG(uint256[] memory twaps, uint256[7] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
+        return abi.encodePacked(
             '<text x="',
-            53 + (index * xInterval) - 10,
+            Strings.toString(53 + (index * xInterval) - 10),
             '" y="',
-            normalizedTwaps[index] - 10,
-            '" font-size="14" visibility="visible">',
-		    '<set attributeName="visibility" from="visible" to="hidden" ',
+            Strings.toString(normalizedTwaps[index] - 10),
+            '" font-size="14" visibility=',
+            '"visible">',
+		    '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
             'begin="0ms" dur="',
-            1000 + (index * 500),
-            //pointDur,
+            Strings.toString(1000 + (index * 500)),
             'ms" />',
-            twaps[index],
+            Strings.toString(twaps[index]),
             '</text>'
         );
     }
@@ -343,35 +389,47 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     /*
     * @dev Returns SVG of a line connecting two price points.
     */
-    function lineSVG(uint256[] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
-        return abi.encode(
+    function lineSVG(uint256[7] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
+        return abi.encodePacked(
             '<line x1="',
-            53 + (index * xInterval) - xInterval,
+            Strings.toString(53 + (index * xInterval) - xInterval),
             '" x2="',
-            53 + (index * xInterval),
+            Strings.toString(53 + (index * xInterval)),
             '" y1="',
-            normalizedTwaps[index-1],
+            Strings.toString(normalizedTwaps[index-1]),
             '" y2="',
-            normalizedTwaps[index],
-            '" stroke="green" stroke-width="3" visibility="visible">',
-            '<set attributeName="visibility" from="visible" to="hidden" ',
+            Strings.toString(normalizedTwaps[index]),
+            '" stroke="green" stroke-width=',
+            '"3" visibility="visible">',
+            '<set attributeName="visibility" ',
+            'from="visible" to="hidden" ',
             'begin="0ms" dur="',
-            1000 + (index * 500) - 500,
+            Strings.toString(1000 + (index * 500) - 500),
             'ms" />',
+            lineAnimationSVG(normalizedTwaps, index, xInterval),
+            '</line>'
+        );
+    }
+
+    /*
+    * @dev Returns SVG of the line animation.
+    */
+    function lineAnimationSVG(uint256[7] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
+        return abi.encodePacked(
             '<animate attributeName="y2" from="',
-            normalizedTwaps[index-1],
+            Strings.toString(normalizedTwaps[index-1]),
             '" to="',
-            normalizedTwaps[index],
+            Strings.toString(normalizedTwaps[index]),
             '" begin="',
-            1000 + (index * 500) - 500,
+            Strings.toString(1000 + (index * 500) - 500),
             'ms" dur="500ms" />',
             '<animate attributeName="x2" from="',
-            53 + (index * xInterval) - xInterval,
+            Strings.toString(53 + (index * xInterval) - xInterval),
             '" to="',
-            53 + (index * xInterval),
+            Strings.toString(53 + (index * xInterval)),
             '" begin="',
-            1000 + (index * 500) - 500,
-            'ms" dur="500ms" /></line>'
+            Strings.toString(1000 + (index * 500) - 500),
+            'ms" dur="500ms" />'
         );
     }
 
@@ -399,8 +457,6 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
             twips[i] = twip;
         }
 
-        string memory svg = string(this.buildSVG(symbol0, symbol1, twips));
-
         // separating strings into small chunks to not exceed 32 bit limit
         string memory blob = string(
             abi.encodePacked(
@@ -409,7 +465,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
                 ': "NFcharT", "name": ',
                 pairName,
                 ', "image_data":',
-                svg,
+                this.buildSVG(symbol0, symbol1, twips),
                 '}'
             )
         );
