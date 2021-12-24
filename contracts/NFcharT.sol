@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import 'contracts/Base64.sol';
 
 // Source: https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0
 interface v3oracle {
@@ -38,6 +39,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     mapping(uint256 => address[]) internal tokenIdToTokenPairMapping; // the key is tokenId and value is array of addresses for two tokens being tracked
     // TODO: create a method to set lookBackWindowForToken by client
     mapping(uint256 => uint256) internal lookBackWindowForToken; // key is tokenId and value is lookback window (in days) set for that token
+
     // TODO: can add a mapping of tokenId to array of plugins
     // then tokenURI method can iterate through plugins when building svg and the json metadata
     // also needs getters/setters
@@ -386,36 +388,34 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // example of getting symbol
         string memory symbol0 = IERC20(tokens[0]).symbol();
         string memory symbol1 = IERC20(tokens[1]).symbol();
-
-        // now query Uniswap Oracle for Price Data (https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0)
-        // eg - to get over 24 hours period, need to query for 30 mins, then 60 mins, then 90, then ... up to 24 hrs
-        // and return all values as an array to plot
+        string memory pairName = string(abi.encodePacked('"', symbol0, '/', symbol1, '"'));
 
         uint256 twipCountToFetch = lookBackWindowForToken[tokenId] * 48; // 48 comes from assuming 3600 is for 30 mins as docs say. and there are 48 periods of 30 mins in one day
         uint256[] memory twips = new uint256[](twipCountToFetch);
-        // TODO: should be a map of seconds (uint256) to prices (unit256)
         for (uint256 i = 0; i < twipCountToFetch; i++) {
             uint256 currentLookbackWindow = (i + 1) * 3600; // recall i is 0 indexed
+            // https://andrecronje.medium.com/easy-on-chain-oracles-54d82961a2a0
             uint256 twip = oracle.assetToAsset(tokens[0], 1e18, tokens[1], currentLookbackWindow);
             twips[i] = twip;
         }
 
         string memory svg = string(this.buildSVG(symbol0, symbol1, twips));
 
-        // Build outline of JSON blob
-        /*
-        {
-        "description": "NFcharT", 
-        "name": buildToken0/Token1Symbol(tokenId),
-        "image_data": buildSVG(tokenId),
-        // "attributes": [{"key": "value"}], // TODO: this is for v2
-        }
-         */
+        // separating strings into small chunks to not exceed 32 bit limit
+        string memory blob = string(
+            abi.encodePacked(
+                '{"',
+                'description"',
+                ': "NFcharT", "name": ',
+                pairName,
+                ', "image_data":',
+                svg,
+                '}'
+            )
+        );
 
-        // base64 encode it (can use contract from here: https://etherscan.io/address/0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d#code)
-
-        // return it
-        return svg;
+        // TODO: add header specifying this is base64 encoded application/json (like the http header)
+        return Base64.encode(bytes(blob));
     }
 
     /**
