@@ -85,7 +85,8 @@ describe("Charteez", function() {
         var svg = await contract.buildSVG(
             "BTC",
             "DAI",
-            [0,80,150,100,300,200,350]
+            //[0,80,150,100,300,200,350]  // week
+            [80,150,100,300,200,350]  // day
         ); 
 
         assert.equal(svg, "");

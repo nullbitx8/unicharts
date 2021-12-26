@@ -95,9 +95,9 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
         // determine if the chart is a 1 day chart or 7 day chart
         bool isWeekChart = twips.length == 7;
 
-        // weekly charts have 50 pixels between points
+        // weekly charts have 35 pixels between points
         // whereas daily charts have 40
-        uint16 xInterval = isWeekChart? 50 : 40;
+        uint16 xInterval = isWeekChart? 38 : 47;
 
         // generate the SVG for the chart 
         return string(abi.encodePacked(
@@ -296,7 +296,7 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
 
             // a 3px buffer is given for the circles on the graph,
             // so the first coord starts at 297 instead of 300
-            normalizedTwaps[i] = 297 - ( ( ( (twips[i] - min) * max ) / (max-min) * 250 ) / max );
+            normalizedTwaps[i] = 297 - ( ( ( (twips[i] - min) * max ) / (max-min) * 230 ) / max );
         }
 
         return normalizedTwaps;
@@ -316,8 +316,8 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
             'from="visible" to="hidden" ',
             'begin="0ms" dur="1000ms" />',
             '</circle>',
-            '<text x="53" y="',
-            Strings.toString(normalizedTwap - 10),
+            '<text x="63" y="',
+            Strings.toString(normalizedTwap),
             '" font-size="14">',
             '<set attributeName="visibility" ',
             'from="visible" to="hidden" ',
@@ -371,9 +371,9 @@ contract NFcharT is ERC721Enumerable, Ownable, ReentrancyGuard {
     function labelSVG(uint256[] memory twaps, uint256[7] memory normalizedTwaps, uint8 index, uint16 xInterval) internal pure returns (bytes memory) {
         return abi.encodePacked(
             '<text x="',
-            Strings.toString(53 + (index * xInterval) - 10),
+            Strings.toString(53 + (index * xInterval) + 10),
             '" y="',
-            Strings.toString(normalizedTwaps[index] - 10),
+            Strings.toString(normalizedTwaps[index]),
             '" font-size="14" visibility=',
             '"visible">',
 		    '<set attributeName="visibility" ',
