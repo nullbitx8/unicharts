@@ -1,50 +1,99 @@
 {
-  "name": "Charts",
+  "name": "@scaffold-eth/monorepo",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
+  "keywords": [
+    "ethereum",
+    "react",
+    "uniswap",
+    "workspaces",
+    "yarn"
+  ],
+  "private": true,
+  "scripts": {
+    "react-app:build": "yarn workspace @scaffold-eth/react-app build --max-old-space-size=12288",
+    "react-app:eject": "yarn workspace @scaffold-eth/react-app eject",
+    "react-app:start": "yarn workspace @scaffold-eth/react-app start",
+    "react-app:test": "yarn workspace @scaffold-eth/react-app test",
+    "build": "yarn workspace @scaffold-eth/react-app build --max-old-space-size=12288",
+    "prettier": "yarn workspace @scaffold-eth/react-app prettier",
+    "chain": "yarn workspace @scaffold-eth/hardhat chain",
+    "debug": "yarn workspace @scaffold-eth/hardhat debug",
+    "fork": "yarn workspace @scaffold-eth/hardhat fork",
+    "node": "yarn workspace @scaffold-eth/hardhat chain",
+    "test": "yarn workspace @scaffold-eth/hardhat test",
+    "start": "yarn workspace @scaffold-eth/react-app start",
+    "compile": "yarn workspace @scaffold-eth/hardhat compile",
+    "deploy": "yarn workspace @scaffold-eth/hardhat deploy",
+    "watch": "yarn workspace @scaffold-eth/hardhat watch",
+    "accounts": "yarn workspace @scaffold-eth/hardhat accounts",
+    "balance": "yarn workspace @scaffold-eth/hardhat balance",
+    "send": "yarn workspace @scaffold-eth/hardhat send",
+    "ipfs": "yarn workspace @scaffold-eth/react-app ipfs",
+    "surge": "yarn workspace @scaffold-eth/react-app surge",
+    "s3": "yarn workspace @scaffold-eth/react-app s3",
+    "ship": "yarn workspace @scaffold-eth/react-app ship",
+    "generate": "yarn workspace @scaffold-eth/hardhat generate",
+    "account": "yarn workspace @scaffold-eth/hardhat account",
+    "mineContractAddress": "cd packages/hardhat && npx hardhat mineContractAddress",
+    "wallet": "cd packages/hardhat && npx hardhat wallet",
+    "fundedwallet": "cd packages/hardhat && npx hardhat fundedwallet",
+    "flatten": "cd packages/hardhat && npx hardhat flatten",
+    "clean": "cd packages/hardhat && npx hardhat clean",
+    "run-graph-node": "yarn workspace @scaffold-eth/services run-graph-node",
+    "remove-graph-node": "yarn workspace @scaffold-eth/services remove-graph-node",
+    "clean-graph-node": "yarn workspace @scaffold-eth/services clean-graph-node",
+    "graph-prepare": "mustache packages/subgraph/config/config.json packages/subgraph/src/subgraph.template.yaml > packages/subgraph/subgraph.yaml",
+    "graph-codegen": "yarn workspace @scaffold-eth/subgraph graph codegen",
+    "graph-build": "yarn workspace @scaffold-eth/subgraph graph build",
+    "graph-create-local": "yarn workspace @scaffold-eth/subgraph graph create --node http://localhost:8020/ scaffold-eth/your-contract",
+    "graph-remove-local": "yarn workspace @scaffold-eth/subgraph graph remove --node http://localhost:8020/ scaffold-eth/your-contract",
+    "graph-deploy-local": "yarn workspace @scaffold-eth/subgraph graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 scaffold-eth/your-contract",
+    "graph-ship-local": "yarn graph-prepare && yarn graph-codegen && yarn graph-deploy-local",
+    "deploy-and-graph": "yarn deploy && yarn graph-ship-local",
+    "theme": "yarn workspace @scaffold-eth/react-app theme",
+    "watch-theme": "yarn workspace @scaffold-eth/react-app watch",
+    "postinstall": "husky install",
+    "lint:fix": "./node_modules/.bin/prettier --write packages/hardhat/contracts/**/*.sol"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/@graphprotocol/graph-ts",
+      "**/@graphprotocol/graph-ts/**",
+      "**/hardhat",
+      "**/hardhat/**",
+      "**/hardhat-ts",
+      "**/hardhat-ts/**"
+    ]
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.4.0",
+    "js-sha3": "^0.8.0",
+    "styled-components": "^5.3.3"
+  },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
     "eslint": "^7.5.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-prettier": "^3.1.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.2",
+    "hardhat": "^2.7.1",
     "husky": "^7.0.4",
     "prettier": "^2.5.0",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "0.0.5"
   },
-  "dependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.0",
-    "@nomiclabs/hardhat-etherscan": "^2.1.1",
-    "@openzeppelin/contracts": "^4.2.0",
-    "@tenderly/hardhat-tenderly": "^1.0.13",
-    "chai": "^4.3.4",
-    "ethers": "^5.0.17",
-    "hardhat": "^2.6.8",
-    "hardhat-gas-reporter": "^1.0.4"
-  },
-  "scripts": {
-    "chain": "hardhat node",
-    "fork": "hardhat node --fork https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad",
-    "test": "hardhat test --network hardhat",
-    "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.js",
-    "postdeploy": "hardhat run scripts/publish.js",
-    "watch": "node scripts/watch.js",
-    "accounts": "hardhat accounts",
-    "balance": "hardhat balance",
-    "send": "hardhat send",
-    "generate": "hardhat generate",
-    "account": "hardhat account",
-    "upload": "hardhat run scripts/upload.js",
-    "lint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
-    "lint:fix": "./node_modules/.bin/prettier --write contracts/**/*.sol"
-  },
   "husky": {
     "hooks": {
-      "pre-push": "npm run lint:fix"
+      "pre-commit": "npm run lint:fix"
     }
   }
 }

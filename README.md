@@ -1,31 +1,60 @@
-# tutorial
+# NFcharT
 
-## local setup
-1. `npm i` to install
-1. `npx hardhat compile` (can gen secrets with `npx mnemonics`)
-1. `npx hardhat node` (to run a node) -- acts dump on screen, act 0 is used by default
-1. in new terminal, `npx hardhat console --network hardhat` to attach console to running node
+## How to run
+#### Docker
+1. See readme in `docker` dir
+#### Locally
+1. Run `yarn install` in the root dir
+2. Run `yarn chain` in one terminal
+3. Once the first terminal is dumping ETH network logs, run `yarn deploy` in the second terminal
+4. When the second terminal finishes, run `yarn start` in that terminal to start the web app
 
-## deploying to local
-1. in console run `var Collection = await ethers.getContractFactory("MyCollection")` where MyCollection is contract name
-1. `var contract = await Collection.deploy('NFcharT', 'NFTCHART', '', ...)` passing in constructor params... deployer is acct 0, team address is diff acct (nb address are a string)
+## File structure
+Solidity code lives in `packages/hardhat/contracts` and `packages/react-app` houses the FE code
+
+## Remaining Todos
+
+#### Launch Token (target Dec 19)
+-- Owned by Dallon
+1. Setup proxy pattern for tinderCoin
+2. Launch tinderCoin on an exchange
+3. Setup liquidity pool for tinderCoin (and find liquidity providers)
+
+1. Buy matchcoin.io domain
+2. Setup single page HTML + timer + logging user info (matchcoin.io)
+3. Figure out how to log traffic to IG/social media accounts using bit.ly redirects
+    a. we want to identify which redirect by queryString (eg user came from Laura's profile)
+    b. we also want general volume from each medium (eg from IG or from tinder or from twitter)
+
+#### Marketing (Dec 20 - infinity)
+-- Owned by Laura
+1. Create accounts + content for IG + Twitter, shill coin + networking shill coin
+
+-- Owned by Dallon
+1. Run dating app bot to market links to IG
+
+-- Owned by Jon
+1. Shill coin in crypto groups
+
+-- Owned by Edo
+1. YouTube video + jingle? and/or more good ideas?
+
+-- Owned by Kelly
+1. Shill coin in DAOs
+
+#### Web App UI (target Dec 23)
+-- Owned by Kelly and Colton
+1. Make styling/css match Figma
+2. Write copy for about us, how it works, contact pages
+3. Setup Figma + implement css for about us, how it works, contact pages
 
 
-Note that `ethers` is essentially a client that mimics Web3js interactions
+## Docs
 
-## testing access control
-1. can set baseURI as owner by running `var res = await contract.setBaseURI('youtube.com')`
-1. to interact with contract as a different user to test access control
-    1. get list of signers (addresses generated in terminal) -> `var signers = await ethers.getSigners()`
-    1. get copy instance of contract -> `var contractAsUser1 = await ethers.getContractAt('MyCollection', contract.address, signers[1])`
-    1. try to set baseURI and observe permission denied/reversion error -> `var res = await contractAsUser1.setBaseURI('youtube.com')`
+[Design doc](https://docs.google.com/document/d/1dK7VgTm8u8EnxTcnLr6IJ1oO5Dabo6-Zlrjw39kxWdQ/edit?usp=sharing)
 
-## minting nft
-Note that any user can mint
-1. First need to unPause sale (can only update state via api that contract exposed) -> `await contract.pause(false)`
-1. Can check with `await contract.paused()` because getter is auto-generated for state vars
-1. Then mint 10 `var res = await contractAsUser1.userMint(10, {value: ethers.utils.parseEther("0.6")})` -- note that `value` is in wei so parse to avoid manual conversion
-1. Now can use method in src to check tokens owned by a address -> `await contract.assetsOfAddress(signers[1].address)`
+[Marketing doc](https://docs.google.com/document/d/1j1zncLV9bOxah-RwL6pvQE5fU5MIwoYLLpjnd2uhyH8/edit?usp=sharing)
 
-## exploring minted nft
-1. To see the baseURI we set on the first item -> `var metadata = await contract.tokenURI(0)`
+[Figma](https://www.figma.com/file/AQxlyKqiQvVT5SKpTLV2js/Tinder-Chain?node-id=8%3A233)
+
+[Token distribution on team doc](https://docs.google.com/document/d/1f3RNjkwcN7BnwA6OC5enuIrjpGIM5xQIfvhXvkeH9YQ/edit?usp=sharing)
