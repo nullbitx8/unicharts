@@ -12,7 +12,7 @@ const zeroAddress = "0x0000000000000000000000000000000000000000"
 const deadAddress = "0x000000000000000000000000000000000000dEaD"
 
 
-describe("Charteez", function() { 
+describe("uniCharts", function() { 
   // test accounts
   let accounts;
   let signers;
@@ -37,7 +37,7 @@ describe("Charteez", function() {
     signers = await ethers.getSigners();
 
     // contract initialization values
-    name = "Chart NFT";
+    name = "UniCharts";
     symbol = "CHARTS";
     uniV3Oracle = "0x0000000000000000000000000000000000000000";
 
@@ -55,7 +55,7 @@ describe("Charteez", function() {
    */
   beforeEach(async function() {
     // create UniChartz contract
-    const Charts = await ethers.getContractFactory("NFcharT");
+    const Charts = await ethers.getContractFactory("uniCharts");
     // signer is contract owner (signers[0])
     contract = await Charts.deploy(
         name,
