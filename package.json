@@ -39,8 +39,8 @@
     "generate": "hardhat generate",
     "account": "hardhat account",
     "upload": "hardhat run scripts/upload.js",
-    "lint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
-    "lint:fix": "./node_modules/.bin/prettier --write contracts/**/*.sol"
+    "lint": "./node_modules/.bin/solhint -f table **/*.sol",
+    "lint:fix": "./node_modules/.bin/prettier --write **/*.sol"
   },
   "husky": {
     "hooks": {
