@@ -53,7 +53,8 @@
     "theme": "yarn workspace @scaffold-eth/react-app theme",
     "watch-theme": "yarn workspace @scaffold-eth/react-app watch",
     "postinstall": "husky install",
-    "lint:fix": "./node_modules/.bin/prettier --write packages/hardhat/contracts/**/*.sol"
+    "lint": "./node_modules/.bin/solhint -f table **/*.sol",
+    "lint:fix": "./node_modules/.bin/prettier --write **/*.sol"
   },
   "workspaces": {
     "packages": [
@@ -75,6 +76,7 @@
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-etherscan": "^2.1.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
     "eslint": "^7.5.0",
@@ -85,6 +87,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.2",
     "hardhat": "^2.7.1",
+    "hardhat-gas-reporter": "^1.0.4",
     "husky": "^7.0.4",
     "prettier": "^2.5.0",
     "prettier-plugin-solidity": "^1.0.0-beta.19",

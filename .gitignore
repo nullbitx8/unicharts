@@ -1,5 +1,6 @@
 packages/hardhat/cache
-packages/hardhat/artifacts
+artifacts
 packages/*/node_modules/
 node_modules/
-
+secrets.*
+package-lock.json
