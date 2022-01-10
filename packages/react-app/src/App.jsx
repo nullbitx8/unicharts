@@ -155,103 +155,80 @@ function App(props) {
     : useState(Boolean(web3Modal && web3Modal.cachedProvider));
   console.log("APP MAIN - IS LOGGED IN", isLoggedIn);
 
-  const [userProfile, setUserProfile] = useState(null);
+  const handleCreateClick = () => {
+    const token1address = document.getElementById("token1").value.trim();
+    const token2address = document.getElementById("token2").value.trim();
+    const timeWindowSelection = document.getElementById("time-window");
+    const isDay = timeWindowSelection.options[timeWindowSelection.selectedIndex].value === "day";
 
-  useEffect(() => {
-    async function getUserProfile() {
-      if (readContracts && readContracts.NFcharT) {
-        try {
-          const res = await readContracts.NFcharT.getUserProfile(address);
-          // Check for non-nil created TS
-          if (res && res.created_ts._hex !== "0x00") {
-            setUserProfile(res);
-          } else {
-            setUserProfile(null);
-          }
-        } catch (e) {
-          console.log("ERROR IN FETCHING USER PROFILE IN MAIN PAGE LOAD", e);
-          setUserProfile(null);
-        }
-      }
+    if (!token1address || token1address === "") {
+      alert("Empty token1 input");
+      return;
     }
-    getUserProfile();
-  }, [address, readContracts]);
+
+    if (!token2address || token2address === "") {
+      alert("Empty token2 input");
+      return;
+    }
+
+    if (isLoggedIn) {
+      try {
+        // send local eth if in debug mode
+        if (DEBUG_TRANSACTIONS) {
+          tx({
+            to: address,
+            value: ethers.utils.parseEther("0.1"),
+          });
+        }
+        tx(writeContracts.NFcharT.userMint(token1address, token2address));
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      alert("Must connect your metamask wallet to mint");
+    }
+  };
 
   return (
-    <div className="App">
-      <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} userProfile={userProfile} />
+    <>
+      <div className="App">
+        {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
+        <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
+          <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
+            {/*TODO(@kk,@dallon): Minimized is set to true, which hides account balance. Can set to false later*/}
+            <Account
+              address={address}
+              localProvider={localProvider}
+              userSigner={userSigner}
+              mainnetProvider={mainnetProvider}
+              price={price}
+              web3Modal={web3Modal}
+              loadWeb3Modal={loadWeb3Modal}
+              logoutOfWeb3Modal={logoutOfWeb3Modal}
+              blockExplorer={blockExplorer}
+              minimized={true}
+            />
+          </div>
+        </div>
+        <br />
+        <div>
+          <label>Token 1 address</label>
+          <input type="text" id="token1"></input>
+          <br />
+          <label>Token 2 address</label>
+          <input type="text" id="token2"></input>
+          <br />
 
-      <Switch>
-        <Route exact path="/">
-          <Home
-            userProfile={userProfile}
-            setUserProfile={setUserProfile}
-            isLoggedIn={isLoggedIn}
-            setIsLoggedIn={setIsLoggedIn}
-            address={address}
-            readContracts={readContracts}
-            writeContracts={writeContracts}
-            tx={tx}
-          />
-        </Route>
-        <Route exact path="/queue">
-          <Queue
-            userProfile={userProfile}
-            isLoggedIn={isLoggedIn}
-            address={address}
-            readContracts={readContracts}
-            writeContracts={writeContracts}
-            tx={tx}
-            yourLocalBalance={yourLocalBalance}
-          />
-        </Route>
-        <Route exact path="/matches">
-          <Matches
-            userProfile={userProfile}
-            isLoggedIn={isLoggedIn}
-            address={address}
-            readContracts={readContracts}
-            writeContracts={writeContracts}
-            tx={tx}
-            yourLocalBalance={yourLocalBalance}
-          />
-        </Route>
-        <Route exact path="/messages">
-          <Messages
-            userProfile={userProfile}
-            isLoggedIn={isLoggedIn}
-            sender={address}
-            readContracts={readContracts}
-            writeContracts={writeContracts}
-            tx={tx}
-            yourLocalBalance={yourLocalBalance}
-          />
-        </Route>
-      </Switch>
-
-      <ThemeSwitch />
-
-      {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
-        <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
-          {/*TODO(@kk,@dallon): Minimized is set to true, which hides account balance. Can set to false later*/}
-          <Account
-            address={address}
-            localProvider={localProvider}
-            userSigner={userSigner}
-            mainnetProvider={mainnetProvider}
-            price={price}
-            web3Modal={web3Modal}
-            loadWeb3Modal={loadWeb3Modal}
-            logoutOfWeb3Modal={logoutOfWeb3Modal}
-            blockExplorer={blockExplorer}
-            minimized={true}
-          />
+          <label></label>
+          <select name="time-window" id="time-window">
+            <option value="day">24 hrs</option>
+            <option value="week">7 days</option>
+          </select>
+          <br />
+          <button onClick={() => handleCreateClick()}>Mint your chart!</button>
         </div>
       </div>
-      <Footer />
-      <br />
-    </div>
+    </>
   );
 }
 

@@ -1,3 +1,5 @@
+packages/hardhat/cache
+packages/hardhat/artifacts
 packages/*/node_modules/
 node_modules/
 

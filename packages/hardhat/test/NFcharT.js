@@ -63,4 +63,14 @@ describe("NFcharT", () => {
     });
   });
 
+  describe("Contract", () => {
+    it("should disallow minting the same chart twice", async () => {
+      // First unpause minting
+      await deployedNFcharT.pause(false);
+      // Then mint a new token pair
+      await deployedNFcharT.userMint(weth.address, usdt.address);
+      await expect(deployedNFcharT.userMint(weth.address, usdt.address)).to.be.revertedWith("This token pair already exists. Consider trading for it on OpenSea");
+    });
+  });
+
 });
