@@ -6,15 +6,15 @@ pragma solidity ^0.8.0;
 /// @notice Provides functions for encoding/decoding base64
 library Base64 {
     string internal constant TABLE_ENCODE =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     bytes internal constant TABLE_DECODE =
-        hex'0000000000000000000000000000000000000000000000000000000000000000'
-        hex'00000000000000000000003e0000003f3435363738393a3b3c3d000000000000'
-        hex'00000102030405060708090a0b0c0d0e0f101112131415161718190000000000'
-        hex'001a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132330000000000';
+        hex"0000000000000000000000000000000000000000000000000000000000000000"
+        hex"00000000000000000000003e0000003f3435363738393a3b3c3d000000000000"
+        hex"00000102030405060708090a0b0c0d0e0f101112131415161718190000000000"
+        hex"001a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132330000000000";
 
     function encode(bytes memory data) internal pure returns (string memory) {
-        if (data.length == 0) return '';
+        if (data.length == 0) return "";
 
         // load the table into memory
         string memory table = TABLE_ENCODE;
@@ -50,11 +50,20 @@ library Base64 {
                 let input := mload(dataPtr)
 
                 // write 4 characters
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(18, input), 0x3F))))
+                mstore8(
+                    resultPtr,
+                    mload(add(tablePtr, and(shr(18, input), 0x3F)))
+                )
                 resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(12, input), 0x3F))))
+                mstore8(
+                    resultPtr,
+                    mload(add(tablePtr, and(shr(12, input), 0x3F)))
+                )
                 resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(shr(6, input), 0x3F))))
+                mstore8(
+                    resultPtr,
+                    mload(add(tablePtr, and(shr(6, input), 0x3F)))
+                )
                 resultPtr := add(resultPtr, 1)
                 mstore8(resultPtr, mload(add(tablePtr, and(input, 0x3F))))
                 resultPtr := add(resultPtr, 1)
@@ -77,7 +86,7 @@ library Base64 {
         bytes memory data = bytes(_data);
 
         if (data.length == 0) return new bytes(0);
-        require(data.length % 4 == 0, 'invalid base64 decoder input');
+        require(data.length % 4 == 0, "invalid base64 decoder input");
 
         // load the table into memory
         bytes memory table = TABLE_DECODE;
@@ -124,11 +133,29 @@ library Base64 {
                 // write 3 bytes
                 let output := add(
                     add(
-                        shl(18, and(mload(add(tablePtr, and(shr(24, input), 0xFF))), 0xFF)),
-                        shl(12, and(mload(add(tablePtr, and(shr(16, input), 0xFF))), 0xFF))
+                        shl(
+                            18,
+                            and(
+                                mload(add(tablePtr, and(shr(24, input), 0xFF))),
+                                0xFF
+                            )
+                        ),
+                        shl(
+                            12,
+                            and(
+                                mload(add(tablePtr, and(shr(16, input), 0xFF))),
+                                0xFF
+                            )
+                        )
                     ),
                     add(
-                        shl(6, and(mload(add(tablePtr, and(shr(8, input), 0xFF))), 0xFF)),
+                        shl(
+                            6,
+                            and(
+                                mload(add(tablePtr, and(shr(8, input), 0xFF))),
+                                0xFF
+                            )
+                        ),
                         and(mload(add(tablePtr, and(input, 0xFF))), 0xFF)
                     )
                 )
