@@ -32,8 +32,8 @@ contract UniCharts is ERC721Enumerable, Ownable, ReentrancyGuard {
     // libraries
     using Strings for uint256;
 
-    v3Oracle public oracle;
-    datetime public ethDT;
+    V3Oracle public oracle;
+    Datetime public ethDT;
 
     // state vars
     bool public paused = true;
@@ -53,8 +53,8 @@ contract UniCharts is ERC721Enumerable, Ownable, ReentrancyGuard {
         address _oracle,
         address _ethDT
     ) ERC721(_name, _symbol) {
-        oracle = v3oracle(_oracle);
-        ethDT = datetime(_ethDT);
+        oracle = V3Oracle(_oracle);
+        ethDT = Datetime(_ethDT);
     }
 
     /**

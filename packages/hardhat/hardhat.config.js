@@ -14,37 +14,19 @@ require("@nomiclabs/hardhat-etherscan");
 
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
-/*
-      📡 This is where you configure your deploy configuration for 🏗 scaffold-eth
-
-      check out `packages/scripts/deploy.js` to customize your deployment
-
-      out of the box it will auto deploy anything in the `contracts` folder and named *.sol
-      plus it will use *.args for constructor args
-*/
-
-//
-// Select the network you want to deploy to here:
-//
-const defaultNetwork = "localhost";
-
-const mainnetGwei = 21;
 
 function mnemonic() {
   try {
     return fs.readFileSync("./mnemonic.txt").toString().trim();
   } catch (e) {
-    if (defaultNetwork !== "localhost") {
-      console.log(
-        "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
-      );
-    }
+    console.log(
+      "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
+    );
   }
   return "";
 }
 
 module.exports = {
-  defaultNetwork,
 
   /**
    * gas reporter configuration that let's you know
@@ -56,227 +38,24 @@ module.exports = {
     coinmarketcap: process.env.COINMARKETCAP || null,
   },
 
-  // if you want to deploy to a testnet, mainnet, or xdai, you will need to configure:
-  // 1. An Infura key (or similar)
-  // 2. A private key for the deployer
-  // DON'T PUSH THESE HERE!!!
-  // An `example.env` has been provided in the Hardhat root. Copy it and rename it `.env`
-  // Follow the directions, and uncomment the network you wish to deploy to.
-
   networks: {
     localhost: {
       url: "http://localhost:8545",
-      /*      
-        notice no mnemonic here? it will just use account 0 of the hardhat node to deploy
-        (you can put in a mnemonic here to set the deployer locally)
-      
-      */
     },
-
-    // rinkeby: {
-    //   url: `https://rinkeby.infura.io/v3/${process.env.RINKEBY_INFURA_KEY}`,
-    //   accounts: [`${process.env.RINKEBY_DEPLOYER_PRIV_KEY}`],
-    // },
-    // kovan: {
-    //   url: `https://rinkeby.infura.io/v3/${process.env.KOVAN_INFURA_KEY}`,
-    //   accounts: [`${process.env.KOVAN_DEPLOYER_PRIV_KEY}`],
-    // },
-    // mainnet: {
-    //   url: `https://mainnet.infura.io/v3/${process.env.MAINNET_INFURA_KEY}`,
-    //   accounts: [`${process.env.MAINNET_DEPLOYER_PRIV_KEY}`],
-    // },
-    // ropsten: {
-    //   url: `https://ropsten.infura.io/v3/${process.env.ROPSTEN_INFURA_KEY}`,
-    //   accounts: [`${process.env.ROPSTEN_DEPLOYER_PRIV_KEY}`],
-    // },
-    // goerli: {
-    //   url: `https://goerli.infura.io/v3/${process.env.GOERLI_INFURA_KEY}`,
-    //   accounts: [`${process.env.GOERLI_DEPLOYER_PRIV_KEY}`],
-    // },
-    // xdai: {
-    //   url: 'https://dai.poa.network',
-    //   gasPrice: 1000000000,
-    //   accounts: [`${process.env.XDAI_DEPLOYER_PRIV_KEY}`],
-    // },
-
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-
-      //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/rinkeby", // <---- YOUR MORALIS ID! (not limited to infura)
-
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    kovan: {
-      url: "https://kovan.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-
-      //    url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/eth/kovan", // <---- YOUR MORALIS ID! (not limited to infura)
-
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     mainnet: {
       url: "https://mainnet.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-
-      //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
-
-      gasPrice: mainnetGwei * 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    ropsten: {
-      url: "https://ropsten.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-
-      //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/ropsten",// <---- YOUR MORALIS ID! (not limited to infura)
-
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     goerli: {
       url: "https://goerli.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
-
-      //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/goerli", // <---- YOUR MORALIS ID! (not limited to infura)
-
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    xdai: {
-      url: "https://rpc.xdaichain.com/",
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    polygon: {
-      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXx/polygon/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    polytest: {
-      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-
-    matic: {
-      url: "https://rpc-mainnet.maticvigil.com/",
-      gasPrice: 1000000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    rinkebyArbitrum: {
-      url: "https://rinkeby.arbitrum.io/rpc",
-      gasPrice: 0,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l1: "rinkeby",
-      },
-    },
-    localArbitrum: {
-      url: "http://localhost:8547",
-      gasPrice: 0,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l1: "localArbitrumL1",
-      },
-    },
-    localArbitrumL1: {
-      url: "http://localhost:7545",
-      gasPrice: 0,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l2: "localArbitrum",
-      },
-    },
-    optimism: {
-      url: "https://mainnet.optimism.io",
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l1: "mainnet",
-      },
-    },
-    kovanOptimism: {
-      url: "https://kovan.optimism.io",
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l1: "kovan",
-      },
-    },
-    localOptimism: {
-      url: "http://localhost:8545",
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l1: "localOptimismL1",
-      },
-    },
-    localOptimismL1: {
-      url: "http://localhost:9545",
-      gasPrice: 0,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-      companionNetworks: {
-        l2: "localOptimism",
-      },
-    },
-    localAvalanche: {
-      url: "http://localhost:9650/ext/bc/C/rpc",
-      gasPrice: 225000000000,
-      chainId: 43112,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    fujiAvalanche: {
-      url: "https://api.avax-test.network/ext/bc/C/rpc",
-      gasPrice: 225000000000,
-      chainId: 43113,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    mainnetAvalanche: {
-      url: "https://api.avax.network/ext/bc/C/rpc",
-      gasPrice: 225000000000,
-      chainId: 43114,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    testnetHarmony: {
-      url: "https://api.s0.b.hmny.io",
-      gasPrice: 1000000000,
-      chainId: 1666700000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
-    },
-    mainnetHarmony: {
-      url: "https://api.harmony.one",
-      gasPrice: 1000000000,
-      chainId: 1666600000,
       accounts: {
         mnemonic: mnemonic(),
       },
@@ -289,7 +68,6 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
           },
         },
       },
@@ -298,7 +76,6 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
           },
         },
       },
@@ -310,6 +87,35 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0, // here this will by default take the first account as deployer
+    },
+    weth: {
+      "mainnet": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "rinkeby": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+    },
+    usdc: {
+      "mainnet": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "rinkeby": "0xeb8f08a975ab53e34d8a0330e0d34de942c95926",
+    },
+    wbtc: {
+      "mainnet": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "rinkeby": "0x577d296678535e4903d59a4c929b718e1d575e0a",
+    },
+    datetimeLib: {
+      "mainnet": "0x1a6184CD4C5Bea62B0116de7962EE7315B7bcBce",
+      "rinkeby": "0x92482Ba45A4D2186DafB486b322C6d0B88410FE7",
+    },
+    uniV3Oracle: {
+      "mainnet": "0x813A5C304b8E37fA98F43A33DCCf60fA5cDb8739",
+      "rinkeby": "0x6D9eec502dfed0F8B44860903b7DDA5B06d418e3",
+    },
+    user1: {
+      default: 1
+    },
+    user2: {
+      default: 2
+    },
+    user3: {
+      default: 3
     },
   },
   etherscan: {

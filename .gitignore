@@ -3,4 +3,5 @@ artifacts
 packages/*/node_modules/
 node_modules/
 secrets.*
+mnemonic*
 package-lock.json
