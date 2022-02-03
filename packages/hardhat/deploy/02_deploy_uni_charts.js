@@ -17,6 +17,17 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
+  const deployResult = await deploy("UniCharts", {
+    from: deployer,
+    args: [
+      "UniCharts",
+      "CHARTS",
+      deployer.address,
+      deployer.address
+    ],
+    dependencies: ["V3Oracle", "DatetimeLib"]
+  });
+
 
   // Verify your contracts with Etherscan
   // You don't want to verify on localhost
@@ -25,9 +36,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
     await sleep(15000);
     await run("verify:verify", {
       address: NFcharT.address,
-      contract: "contracts/NFcharT.sol:NFcharT",
+      contract: "contracts/UniChwarts.sol:UniCharts",
       contractArguments: [],
     });
   }
 };
-module.exports.tags = ["NFcharT"];
+module.exports.tags = ["UniCharts"];
