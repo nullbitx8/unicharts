@@ -1,16 +1,16 @@
-# NFcharT
+# unicharts
 
 ## About
 
-NFcharT (unicharts) is a fully on-chain, generative art NFT project!
+unicharts is a fully on-chain, generative art NFT project!  
 Users can mint their own charts, then view them on marketplaces like OpenSea.  
 
-The price data for a chart is retrieved from Uniswap's on-chain price oracle!
-The image data for a chart is created using SVG and the price data from the oracle!
+The price data for a chart is retrieved from Uniswap's on-chain price oracle!  
+The image data for a chart is created using SVG and the price data from the oracle!  
 
-Users can choose to display their NFT as a weekly chart or an hourly chart based on their preference.
+Users can choose to display their NFT as a weekly chart or an hourly chart based on their preference.  
 
-The charts will be free to mint, with secondary sales royalties going to the contributors of the project!
+The charts will be free to mint, with secondary sales royalties going to the contributors of the project!  
 
 We are currently looking for:
  * a designer that can create a uniswap-y feel to the existing charts
